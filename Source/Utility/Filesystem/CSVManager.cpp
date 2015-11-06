@@ -32,7 +32,7 @@ std::string ReadUntilToken(FILE *Filehandle, uint32_t Argcount, ...)
                 goto LABEL_END;
 
         // Append the char we read to the result.
-        Result.append(TempChar, 1);
+        Result.append(1, TempChar);
 
         // Save the position as the last valid char.
         fgetpos(Filehandle, &Position);
