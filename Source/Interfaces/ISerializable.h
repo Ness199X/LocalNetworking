@@ -9,9 +9,8 @@
 
 #pragma once
 
-class ISerializable
+struct ISerializable
 {
-public:
     virtual void Serialize(class ByteBuffer *Buffer);
     virtual void Deserialize(class ByteBuffer *Buffer);
 };

@@ -12,8 +12,8 @@
 #include <string>
 
 // Index defines that should be expanded in the module defining a service.
-#define SERVICE_TASKID 0
-#define SERVICE_RESULT 4
+#define SERVICE_BEGIN 0
+#define SERVICE_END   15
 
 struct IService
 {
