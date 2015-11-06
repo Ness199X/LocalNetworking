@@ -12,6 +12,12 @@
 #include <string>
 #include "..\Utility\Crypto\FNV1.h"
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <WinSock2.h>
+#pragma comment (lib, "ws2_32")
+#endif
+
 // Index defines that should be expanded in the module defining a server.
 #define SERVER_BEGIN 0
 #define SERVER_END   31
@@ -53,5 +59,8 @@ inline IServer::IServer()
 }
 inline IServer::IServer(char *Hostname)
 {
-    Identifier = FNV1a_Runtime(Hostname, sizeof(Hostname));
+    if (INADDR_NONE == inet_addr(Hostname))
+        Identifier = FNV1a_Runtime(Hostname, sizeof(Hostname));
+    else
+        Identifier = inet_addr(Hostname);
 }
