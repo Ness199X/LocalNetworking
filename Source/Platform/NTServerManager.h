@@ -23,21 +23,21 @@ class NTServerManager
     static class IServer *FetchServerBySocket(size_t Socket);
 
     // Methods that replace the original winsock imports.
-    static void *__stdcall      NT_Accept(void *Socket, sockaddr *Address, int32_t *AddressLength);
-    static int32_t __stdcall    NT_Bind(void *Socket, const sockaddr *Address, int32_t AddressLength);
-    static int32_t __stdcall    NT_CloseSocket(void *Socket);
-    static int32_t __stdcall    NT_Connect(void *Socket, const sockaddr *Address, int32_t AddressLength);
-    static int32_t __stdcall    NT_GetPeerName(void *Socket, sockaddr *Address, int32_t *AddressLength);
-    static int32_t __stdcall    NT_GetSockName(void *Socket, sockaddr *Address, int32_t *AddressLength);
-    static int32_t __stdcall    NT_GetSockOpt(void *Socket, int32_t Level, int32_t OptionName, char *OptionValue, int32_t *OptionLength);
-    static int32_t __stdcall    NT_IOControlSocket(void *Socket, uint32_t Command, u_long *ArgumentPointer);
-    static int32_t __stdcall    NT_Listen(void *Socket, int32_t Backlog);
-    static int32_t __stdcall    NT_Receive(void *Socket, char *Buffer, int32_t BufferLength, int32_t Flags);
-    static int32_t __stdcall    NT_ReceiveFrom(void *Socket, char *Buffer, int32_t BufferLength, int32_t Flags, sockaddr *Peer, int32_t *PeerLength);
+    static void *__stdcall      NT_Accept(size_t Socket, sockaddr *Address, int32_t *AddressLength);
+    static int32_t __stdcall    NT_Bind(size_t Socket, const sockaddr *Address, int32_t AddressLength);
+    static int32_t __stdcall    NT_CloseSocket(size_t Socket);
+    static int32_t __stdcall    NT_Connect(size_t Socket, const sockaddr *Address, int32_t AddressLength);
+    static int32_t __stdcall    NT_GetPeerName(size_t Socket, sockaddr *Address, int32_t *AddressLength);
+    static int32_t __stdcall    NT_GetSockName(size_t Socket, sockaddr *Address, int32_t *AddressLength);
+    static int32_t __stdcall    NT_GetSockOpt(size_t Socket, int32_t Level, int32_t OptionName, char *OptionValue, int32_t *OptionLength);
+    static int32_t __stdcall    NT_IOControlSocket(size_t Socket, uint32_t Command, u_long *ArgumentPointer);
+    static int32_t __stdcall    NT_Listen(size_t Socket, int32_t Backlog);
+    static int32_t __stdcall    NT_Receive(size_t Socket, char *Buffer, int32_t BufferLength, int32_t Flags);
+    static int32_t __stdcall    NT_ReceiveFrom(size_t Socket, char *Buffer, int32_t BufferLength, int32_t Flags, sockaddr *Peer, int32_t *PeerLength);
     static int32_t __stdcall    NT_Select(int32_t fdsCount, fd_set *Readfds, fd_set *Writefds, fd_set *Exceptfds, const timeval *Timeout);
-    static int32_t __stdcall    NT_Send(void *Socket, const char *Buffer, int32_t BufferLength, int32_t Flags);
-    static int32_t __stdcall    NT_SendTo(void *Socket, const char *Buffer, int32_t BufferLength, int32_t Flags, const sockaddr *Peer, int32_t PeerLength);
-    static int32_t __stdcall    NT_SetSockOpt(void *Socket, int32_t Level, int32_t OptionName, const char *OptionValue, int32_t OptionLength);
+    static int32_t __stdcall    NT_Send(size_t Socket, const char *Buffer, int32_t BufferLength, int32_t Flags);
+    static int32_t __stdcall    NT_SendTo(size_t Socket, const char *Buffer, int32_t BufferLength, int32_t Flags, const sockaddr *Peer, int32_t PeerLength);
+    static int32_t __stdcall    NT_SetSockOpt(size_t Socket, int32_t Level, int32_t OptionName, const char *OptionValue, int32_t OptionLength);
     static hostent *__stdcall   NT_GetHostByName(const char *Hostname);
 
 public:
