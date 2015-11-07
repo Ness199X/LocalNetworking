@@ -28,8 +28,8 @@ class IServer
 {
 protected:
     // Platform independent methods.
-    virtual int32_t Platform_Disconnect(void *Socket) = 0;
-    virtual int32_t Platform_Connect(void *Socket, void *NameStruct, int32_t NameLength) = 0;
+    virtual int32_t Platform_Disconnect(size_t Socket) = 0;
+    virtual int32_t Platform_Connect(size_t Socket, void *NameStruct, int32_t NameLength) = 0;
     virtual int32_t Platform_Send(uint8_t *Buffer, int32_t Length, size_t Socket = 0) = 0;
     virtual int32_t Platform_Receive(uint8_t *Buffer, int32_t Length, size_t Socket = 0) = 0;
     virtual void    Platform_Select(int32_t *ReadCount, size_t *SocketsRead, int32_t *WriteCount, size_t *SocketsWrite) = 0;
