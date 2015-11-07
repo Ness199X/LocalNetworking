@@ -23,7 +23,7 @@ class NTServerManager
     static class IServer *FetchServerBySocket(size_t Socket);
 
     // Methods that replace the original winsock imports.
-    static void *__stdcall      NT_Accept(size_t Socket, sockaddr *Address, int32_t *AddressLength);
+    static size_t __stdcall     NT_Accept(size_t Socket, sockaddr *Address, int32_t *AddressLength);
     static int32_t __stdcall    NT_Bind(size_t Socket, const sockaddr *Address, int32_t AddressLength);
     static int32_t __stdcall    NT_CloseSocket(size_t Socket);
     static int32_t __stdcall    NT_Connect(size_t Socket, const sockaddr *Address, int32_t AddressLength);
