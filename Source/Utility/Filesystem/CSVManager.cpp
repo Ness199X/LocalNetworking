@@ -75,6 +75,7 @@ bool CSVManager::ReadAll()
     Buffer.clear();
     Buffer.shrink_to_fit();
 
+#pragma warning (suppress : 127)
     while(true)
     {
         // Switch on the next character.

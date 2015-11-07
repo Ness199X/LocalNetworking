@@ -15,6 +15,7 @@ struct ISerializable
     virtual void Deserialize(class ByteBuffer *Buffer);
 };
 
+#pragma warning(disable : 100)
 inline void ISerializable::Serialize(class ByteBuffer *Buffer)
 {
 
@@ -22,3 +23,4 @@ inline void ISerializable::Serialize(class ByteBuffer *Buffer)
 inline void ISerializable::Deserialize(class ByteBuffer *Buffer)
 {
 }
+#pragma warning(default : 100)
