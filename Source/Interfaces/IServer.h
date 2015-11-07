@@ -13,6 +13,7 @@
 #include "..\Utility\Crypto\FNV1.h"
 
 #ifdef _WIN32
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 #include <WinSock2.h>
 #pragma comment (lib, "ws2_32")
@@ -43,7 +44,7 @@ public:
 
     // Identifiers and debug information.
     size_t Identifier;
-    const char *Hostname;
+    char *Hostname;
 
     // Usercode access to push data.
     virtual int32_t EnqueueData(std::string &Data) = 0;
@@ -60,7 +61,11 @@ inline IServer::IServer()
 inline IServer::IServer(char *Hostname)
 {
     if (INADDR_NONE == inet_addr(Hostname))
-        Identifier = FNV1a_Runtime(Hostname, sizeof(Hostname));
+        Identifier = FNV1a_Runtime(Hostname, strlen(Hostname));
     else
         Identifier = inet_addr(Hostname);
+
+    // Save the hostname for debug info.
+    this->Hostname = new char[strlen(Hostname) + 1]();
+    strcpy_s(this->Hostname, strlen(Hostname), Hostname);
 }
