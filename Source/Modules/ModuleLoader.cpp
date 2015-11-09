@@ -53,25 +53,28 @@ bool ModuleLoader::LoadModule(const char *Modulename, const char *License)
     FILE *Filehandle;
     size_t Filesize;
     NewModule.Memorymodule = (strstr(Modulename, ".LZ4") || strstr(Modulename, ".AES") || !strstr(Modulename, ".dll"));
-    if (NewModule.Memorymodule && 0 == fopen_s(&Filehandle, va("Plugins\\LocalNetworking\\Modules\\%s", Modulename), "rb"))
+    if (NewModule.Memorymodule)
     {
-        // Read the size.
-        fseek(Filehandle, 0, SEEK_END);
-        Filesize = ftell(Filehandle);
-        fseek(Filehandle, 0, SEEK_SET);
+        if (0 == fopen_s(&Filehandle, va("Plugins\\LocalNetworking\\Modules\\%s", Modulename), "rb"))
+        {
+            // Read the size.
+            fseek(Filehandle, 0, SEEK_END);
+            Filesize = ftell(Filehandle);
+            fseek(Filehandle, 0, SEEK_SET);
 
-        // Read the file into the buffer.
-        Filebuffer = new char[Filesize + 1]();
-        if (fread_s(Filebuffer, Filesize + 1, 1, Filesize, Filehandle) == Filesize)
-            NewModule.ModuleData.append(Filebuffer, Filesize);
+            // Read the file into the buffer.
+            Filebuffer = new char[Filesize + 1]();
+            if (fread_s(Filebuffer, Filesize + 1, 1, Filesize, Filehandle) == Filesize)
+                NewModule.ModuleData.append(Filebuffer, Filesize);
 
-        delete[] Filebuffer;
-        fclose(Filehandle);
-    }
-    else
-    {
-        OutputDebugStringA(va("%s failed to load module \"%s\"", __func__, Modulename));
-        return false;
+            delete[] Filebuffer;
+            fclose(Filehandle);
+        }
+        else
+        {
+            OutputDebugStringA(va("%s failed to load module \"%s\"", __func__, Modulename));
+            return false;
+        }
     }
 
     // Decrypt the module using the license provided.
