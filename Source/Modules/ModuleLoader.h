@@ -13,11 +13,11 @@
 struct ModuleLoader
 {
     // Load a module into an internal array.
-    bool LoadModule(const char *Modulename, const char *License);
+    static bool LoadModule(const char *Modulename, const char *License);
 
     // Load modules from a CSV, uses LoadModule.
-    bool LoadFromCSV(const char *CSVName);
+    static bool LoadFromCSV(const char *CSVName);
 
     // Create a server instance from the module.
-    class IServer *CreateInstance(const char *Modulename, const char *Hostname);
+    static class IServer *CreateInstance(const char *Modulename, const char *Hostname);
 };
