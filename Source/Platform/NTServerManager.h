@@ -44,4 +44,5 @@ public:
     // Initialization and modification of the platform layer.
     static bool InitializeWinsockHooks();
     static void InitializeServerInterface(class IServer *Server);
+    static void SendShutdown();
 };

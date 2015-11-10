@@ -61,6 +61,13 @@ void NTServerManager::InitializeServerInterface(class IServer *Server)
 {
     ServerAddresses.emplace(Server->Identifier, Server);
 }
+void NTServerManager::SendShutdown()
+{
+    for (auto Iterator = ServerAddresses.begin(); Iterator != ServerAddresses.end(); ++Iterator)
+        Iterator->second->Platform_Disconnect(-1);
+
+    ServerAddresses.clear();
+}
 
 // Methods that replace the original winsock imports.
 size_t __stdcall     NTServerManager::NT_Accept(size_t Socket, sockaddr *Address, int32_t *AddressLength)
