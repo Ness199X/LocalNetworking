@@ -9,6 +9,7 @@
 
 #include "NTServerManager.h"
 #include "..\Utility\Binary\Hooking.h"
+#include "..\Macros.h"
 #include <chrono>
 
 // Internal map of bound IServer instances for easier management.
@@ -70,7 +71,7 @@ int32_t __stdcall    NTServerManager::NT_Bind(size_t Socket, const sockaddr *Add
 {
     if (AddressLength == sizeof(sockaddr_in))
     {
-        OutputDebugStringA(va("%s to address %s:%u on socket 0x%X", __func__, inet_ntoa(((sockaddr_in *)Address)->sin_addr), ntohs(((sockaddr_in *)Address)->sin_port), Socket));
+        NetworkPrint(va("%s to address %s:%u on socket 0x%X", __func__, inet_ntoa(((sockaddr_in *)Address)->sin_addr), ntohs(((sockaddr_in *)Address)->sin_port), Socket));
     }
 
     return bind(Socket, Address, AddressLength);
@@ -83,7 +84,7 @@ int32_t __stdcall    NTServerManager::NT_CloseSocket(size_t Socket)
     Server = FetchServerBySocket(Socket);
     if (Server != nullptr)
     {
-        OutputDebugStringA(va("%s for server \"%s\"", __func__, Server->Hostname));
+        NetworkPrint(va("%s for server \"%s\"", __func__, Server->Hostname));
         Server->Platform_Disconnect(Socket);
         ServerSockets.erase(Socket);
     }
@@ -106,14 +107,14 @@ int32_t __stdcall    NTServerManager::NT_Connect(size_t Socket, const sockaddr *
     // Let winsock handle the request if we can't.
     if (Server == nullptr)
     {
-        OutputDebugStringA(va("%s to address %s:%u on socket 0x%X", __func__, inet_ntoa(((sockaddr_in *)Address)->sin_addr), ntohs(((sockaddr_in *)Address)->sin_port), Socket));
+        NetworkPrint(va("%s to address %s:%u on socket 0x%X", __func__, inet_ntoa(((sockaddr_in *)Address)->sin_addr), ntohs(((sockaddr_in *)Address)->sin_port), Socket));
         return connect(Socket, Address, AddressLength);
     }
 
     // Add the socket to the map.
     ServerSockets.emplace(Socket, Server);
 
-    OutputDebugStringA(va("%s to address %s:%u on socket 0x%X", __func__, inet_ntoa(((sockaddr_in *)Address)->sin_addr), ntohs(((sockaddr_in *)Address)->sin_port), Socket));
+    NetworkPrint(va("%s to address %s:%u on socket 0x%X", __func__, inet_ntoa(((sockaddr_in *)Address)->sin_addr), ntohs(((sockaddr_in *)Address)->sin_port), Socket));
     return Server->Platform_Connect(Socket, (void *)Address, AddressLength);
 }
 int32_t __stdcall    NTServerManager::NT_GetPeerName(size_t Socket, sockaddr *Address, int32_t *AddressLength)
@@ -148,7 +149,7 @@ int32_t __stdcall    NTServerManager::NT_IOControlSocket(size_t Socket, uint32_t
     case SIOCATMARK: ReadableCommand = "SIOCATMARK"; break;
     }
 
-    OutputDebugStringA(va("%s on socket 0x%X with command \"%s\"", __func__, Socket, ReadableCommand));
+    NetworkPrint(va("%s on socket 0x%X with command \"%s\"", __func__, Socket, ReadableCommand));
     return ioctlsocket((SOCKET)Socket, Command, ArgumentPointer);
 }
 int32_t __stdcall    NTServerManager::NT_Listen(size_t Socket, int32_t Backlog)
@@ -168,7 +169,7 @@ int32_t __stdcall    NTServerManager::NT_Receive(size_t Socket, char *Buffer, in
     {
         BytesReceived = recv(Socket, Buffer, BufferLength, Flags);
         if(BytesReceived != -1)
-            OutputDebugStringA(va("%s via 0x%X, %i bytes.", __func__, Socket, BytesReceived));
+            NetworkPrint(va("%s via 0x%X, %i bytes.", __func__, Socket, BytesReceived));
         return BytesReceived;
     }
 
@@ -187,7 +188,7 @@ int32_t __stdcall    NTServerManager::NT_Receive(size_t Socket, char *Buffer, in
 
     // Log how much data we received.
     if (BytesReceived != -1)
-        OutputDebugStringA(va("%s: %i bytes from %s", __func__, BytesReceived, Server->Hostname));
+        NetworkPrint(va("%s: %i bytes from %s", __func__, BytesReceived, Server->Hostname));
 
     return BytesReceived;
 }
@@ -206,7 +207,7 @@ int32_t __stdcall    NTServerManager::NT_ReceiveFrom(size_t Socket, char *Buffer
     {
         BytesReceived = recvfrom(Socket, Buffer, BufferLength, Flags, Peer, PeerLength);
         if(BytesReceived != -1)
-            OutputDebugStringA(va("%s via 0x%X, %i bytes.", __func__, Socket, BytesReceived));
+            NetworkPrint(va("%s via 0x%X, %i bytes.", __func__, Socket, BytesReceived));
         return BytesReceived;
     }
 
@@ -228,7 +229,7 @@ int32_t __stdcall    NTServerManager::NT_ReceiveFrom(size_t Socket, char *Buffer
         
     // Log how much data we received.
     if (BytesReceived != -1)
-        OutputDebugStringA(va("%s: %i bytes from %s", __func__, BytesReceived, Server->Hostname));
+        NetworkPrint(va("%s: %i bytes from %s", __func__, BytesReceived, Server->Hostname));
     
     return BytesReceived;
 }
@@ -280,11 +281,11 @@ int32_t __stdcall    NTServerManager::NT_Send(size_t Socket, const char *Buffer,
     // Let winsock handle the request if we can't.
     if (Server == nullptr)
     {
-        OutputDebugStringA(va("%s via 0x%X, %i bytes.", __func__, Socket, BufferLength));
+        NetworkPrint(va("%s via 0x%X, %i bytes.", __func__, Socket, BufferLength));
         return send(Socket, Buffer, BufferLength, Flags);
     }
 
-    OutputDebugStringA(va("%s to \"%s\", %i bytes.", __func__, Server->Hostname, BufferLength));
+    NetworkPrint(va("%s to \"%s\", %i bytes.", __func__, Server->Hostname, BufferLength));
     return Server->Platform_Send((uint8_t *)Buffer, BufferLength, Socket);
 }
 int32_t __stdcall    NTServerManager::NT_SendTo(size_t Socket, const char *Buffer, int32_t BufferLength, int32_t Flags, const sockaddr *Peer, int32_t PeerLength)
@@ -299,7 +300,7 @@ int32_t __stdcall    NTServerManager::NT_SendTo(size_t Socket, const char *Buffe
     // Let winsock handle the request if we can't.
     if (Server == nullptr)
     {
-        OutputDebugStringA(va("%s via 0x%X, %i bytes.", __func__, Socket, BufferLength));
+        NetworkPrint(va("%s via 0x%X, %i bytes.", __func__, Socket, BufferLength));
         return sendto(Socket, Buffer, BufferLength, Flags, Peer, PeerLength);
     }
 
@@ -307,7 +308,7 @@ int32_t __stdcall    NTServerManager::NT_SendTo(size_t Socket, const char *Buffe
     ServerSockets.emplace(Socket, Server);
     memcpy(&Server->LocalStorage[SERVER_HOST], Peer, sizeof(sockaddr));
 
-    OutputDebugStringA(va("%s to \"%s\", %i bytes.", __func__, Server->Hostname, BufferLength));
+    NetworkPrint(va("%s to \"%s\", %i bytes.", __func__, Server->Hostname, BufferLength));
     return Server->Platform_Send((uint8_t *)Buffer, BufferLength, Socket);
 }
 int32_t __stdcall    NTServerManager::NT_SetSockOpt(size_t Socket, int32_t Level, int32_t OptionName, const char *OptionValue, int32_t OptionLength)
@@ -332,7 +333,7 @@ hostent *__stdcall   NTServerManager::NT_GetHostByName(const char *Hostname)
 
         // Debug information about winsocks result.
         if (ResolvedHost != nullptr)
-            OutputDebugStringA(va("%s: \"%s\" -> %s", __func__, Hostname, inet_ntoa(*(in_addr*)ResolvedHost->h_addr_list[0])));
+            NetworkPrint(va("%s: \"%s\" -> %s", __func__, Hostname, inet_ntoa(*(in_addr*)ResolvedHost->h_addr_list[0])));
 
         return ResolvedHost;
     }
@@ -351,6 +352,6 @@ hostent *__stdcall   NTServerManager::NT_GetHostByName(const char *Hostname)
     LocalHost.h_length = sizeof(in_addr);
     LocalHost.h_addr_list = (char **)LocalSocketAddrList;
 
-    OutputDebugStringA(va("%s: \"%s\" -> %s", __func__, Hostname, inet_ntoa(LocalAddress)));
+    NetworkPrint(va("%s: \"%s\" -> %s", __func__, Hostname, inet_ntoa(LocalAddress)));
     return &LocalHost;
 }

@@ -20,6 +20,7 @@
 #include "..\Utility\Compression\lz4.h"
 #include "..\Utility\Crypto\AES256.h"
 #include "..\Utility\Crypto\SM3.h"
+#include "..\Macros.h"
 
 // Representation of a module in the array.
 struct LocalModule
@@ -72,7 +73,7 @@ bool ModuleLoader::LoadModule(const char *Modulename, const char *License)
         }
         else
         {
-            OutputDebugStringA(va("%s failed to load module \"%s\"", __func__, Modulename));
+            DebugPrint(va("%s failed to load module \"%s\"", __func__, Modulename));
             return false;
         }
     }
@@ -179,7 +180,7 @@ bool ModuleLoader::LoadFromCSV(const char *CSVName)
     }
 
     // Debug information.
-    OutputDebugStringA(va("%s loaded %u modules and %u server instances.", __func__, ModuleArray.size(), InstanceCount));
+    InfoPrint(va("%s loaded %u modules and %u server instances.", __func__, ModuleArray.size(), InstanceCount));
     return InstanceCount > 0;
 }
 
@@ -197,7 +198,7 @@ class IServer *ModuleLoader::CreateInstance(const char *Modulename, const char *
     // Sanity check.
     if (ThisModule == nullptr)
     {
-        OutputDebugStringA(va("%s with an unloaded module; \"%s\"", __func__, Modulename));
+        DebugPrint(va("%s with an unloaded module; \"%s\"", __func__, Modulename));
         return nullptr;
     }
 
@@ -210,7 +211,7 @@ class IServer *ModuleLoader::CreateInstance(const char *Modulename, const char *
     // The module developer forgot to export the procedure.
     if (_CreateInstance == nullptr)
     {
-        OutputDebugStringA(va("%s with an ivalid module (missing export); \"%s\"", __func__, Modulename));
+        DebugPrint(va("%s with an ivalid module (missing export); \"%s\"", __func__, Modulename));
         return nullptr;
     }
 

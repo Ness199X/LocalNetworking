@@ -26,6 +26,7 @@ inline void AppendToLogfile(const char *Message, const char *Prefix)
     {
         fputs(va("[%s] ", Prefix), Filehandle);
         fputs(Message, Filehandle);
+        fputs("\n", Filehandle);
         fclose(Filehandle);
     }
     WriteMutex.unlock();

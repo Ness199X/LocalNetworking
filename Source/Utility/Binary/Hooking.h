@@ -10,6 +10,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include "..\String\VariadicString.h"
+#include "..\..\Macros.h"
 
 // Redirect an import in the host.
 inline size_t RedirectIAT(const char *Modulename, const char *Functionname, void *NewFunction)
@@ -32,7 +33,7 @@ inline size_t RedirectIAT(const char *Modulename, const char *Functionname, void
     // Verify that the import table has not been destroyed by a packer.
     if (NTHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size == 0)
     {
-        OutputDebugStringA(va("%s: The current application does not have an import table.", __func__));
+        DebugPrint(va("%s: The current application does not have an import table.", __func__));
         return 0;
     }
 

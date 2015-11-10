@@ -19,4 +19,5 @@
 #define PrintFunction() AppendToLogfile(__func__, "Func")
 #define DebugPrint(string) AppendToLogfile(string, "Debug")
 #define InfoPrint(string) AppendToLogfile(string, "Info")
+#define NetworkPrint(string) AppendToLogfile(string, "Net")
 #endif
