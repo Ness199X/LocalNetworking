@@ -31,3 +31,7 @@ inline void AppendToLogfile(const char *Message, const char *Prefix)
     }
     WriteMutex.unlock();
 }
+inline void DeleteLogfile()
+{
+    std::remove(Filepath);
+}
