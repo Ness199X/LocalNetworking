@@ -12,7 +12,6 @@
 #include "Platform\NTServerManager.h"
 #include "Utility\Crypto\FNV1.h"
 
-// Platform specific keywords.
 #ifdef __linux__
 #define EXPORT_ATTR __attribute__((visibility("default")))
 #define IMPORT_ATTR
@@ -25,90 +24,26 @@
 #pragma warning Unknown dynamic link import/export semantics.
 #endif
 
-// Macros to make it more readable.
-#define EXPORTSTART(ExportName) \
-EXPORT_ATTR bool __cdecl ExportName(size_t Command, ...)    \
-{                               \
-    bool Result = false;        \
-    va_list Variadic;           \
-    va_start(Variadic, Command);\
-                                \
-    switch(Command)             \
-    {
-#define EXPORTEND               \
-    }                           \
-                                \
-    va_end(Variadic);           \
-    return Result;              \
-}
-#define EXPORTFUNCTION(Command, Functor)    \
-    case FNV1a_Compiletime(Command):        \
-        Result = Functor(Variadic);         \
-        break
-
-#define EXPORT_UNHANDLED 0
-#define SERVER_NOEXPORTS 93
-
-// Implementation of the exports.
-bool PreInitialization(va_list Variadic)
-{
-    // Platform dependant logic.
-#ifdef _WIN32
-    if (!NTServerManager::InitializeWinsockHooks())
-    {
-        SetLastError(SERVER_NOEXPORTS);
-        return false;
-    }
-#else
-    if (!NIXServerManager::InitializeWinsockHooks())
-    {
-        SetLastError(SERVER_NOEXPORTS);
-        return false;
-    }
-#endif
-
-    // Load all the servers we'll be using.
-    return ModuleLoader::LoadFromCSV("AyriaModules");
-}
-bool Shutdown(va_list Variadic)
-{
-    // Platform dependant logic.
-#ifdef _WIN32 
-    NTServerManager::SendShutdown();                
-#else
-    NIXServerManager::SendShutdown();
-#endif
-
-    return true;
-}
+// Implementations of the API.
 bool AuthorName(va_list Variadic)
 {
     char *Result = va_arg(Variadic, char *);
-
-    // Copy a hardcoded string to the buffer.
-    strcpy_s(Result, 1024, "Convery");
-
+    strcpy_s(Result, 512, "Convery");
     return true;
 }
 bool AuthorSite(va_list Variadic)
 {
     char *Result = va_arg(Variadic, char *);
-
-    // Copy a hardcoded string to the buffer.
-    strcpy_s(Result, 1024, "https://github.com/Convery");
-
+    strcpy_s(Result, 512, "https://xn--wxa.ayria.io/LocalNetworking");
     return true;
 }
-bool InternalName(va_list Variadic)
+bool Internalname(va_list Variadic)
 {
     char *Result = va_arg(Variadic, char *);
-
-    // Copy a hardcoded string to the buffer.
-    strcpy_s(Result, 1024, "LocalNetworking (like Opennet)");
-
+    strcpy_s(Result, 512, "LocalNetworking - Like OpenNet");
     return true;
 }
-bool OnDiskHash(va_list Variadic)
+bool Modulehash(va_list Variadic)
 {
     size_t *Result = va_arg(Variadic, size_t *);
 
@@ -134,8 +69,7 @@ bool DependencyName(va_list Variadic)
     switch (Index)
     {
     default:
-        // Copy a hardcoded string to the buffer.
-        strcpy_s(Result, 1024, "Invalid index");
+        strcpy_s(Result, 512, "404");
     }
 
     return true;
@@ -143,54 +77,111 @@ bool DependencyName(va_list Variadic)
 bool WhitelistClaim(va_list Variadic)
 {
     bool *Result = va_arg(Variadic, bool *);
-
-    // This is an official plugin and should
-    // be checked for modification and updates.
-    *Result = true;
+    *Result = false;
 
     return true;
 }
-bool RecvMessage(va_list Variadic)
+bool ReadValue(va_list Variadic)
 {
-    const char *Sender = va_arg(Variadic, const char *);
+    size_t Key = va_arg(Variadic, size_t);
+    char *Value = va_arg(Variadic, char *);
+
+    // We don't save data for other plugins.
+    return true;
+}
+bool WriteValue(va_list Variadic)
+{
+    size_t Key = va_arg(Variadic, size_t);
+    char *Value = va_arg(Variadic, char *);
+
+    // We don't save data for other plugins.
+    return true;
+}
+bool HandleMessage(va_list Variadic)
+{
+    char *Pluginname = va_arg(Variadic, char *);
     size_t Command = va_arg(Variadic, size_t);
-    const char *Message = va_arg(Variadic, const char *);
+    char *Message = va_arg(Variadic, char *);
 
     switch (Command)
     {
-    case FNV1a_Compiletime("NoneImplemented"):
+
     default:
-        DebugPrint(va("%s from \"%s\" with message \"%s\".", __func__, Sender, Message));
-        return false;
+        DebugPrint(va("Got a message from plugin \"%s\" with value: \"%s\"", Pluginname, Message));
     }
 
     return true;
 }
+bool PreInitialization(va_list Variadic)
+{
+    bool *Result = va_arg(Variadic, bool *);
+
+    // Platform dependant logic.
+#ifdef _WIN32
+    if (!NTServerManager::InitializeWinsockHooks()) return false;
+#else
+    if (!NIXServerManager::InitializeWinsockHooks()) return false;
+#endif
+
+    // Load all the servers we'll be using.
+    *Result = ModuleLoader::LoadFromCSV("AyriaModules");
+
+    return true;
+}
+bool PostInitialization(va_list Variadic)
+{
+    bool *Result = va_arg(Variadic, bool *);
+    *Result = true;
+
+    return true;
+}
+bool NotifyShutdown(va_list Variadic)
+{
+    // Platform dependant logic.
+#ifdef _WIN32 
+    NTServerManager::SendShutdown();                
+#else
+    NIXServerManager::SendShutdown();
+#endif
+
+    return true;
+}
+
+#define EXPORTFUNCTION(Command, Functor)    \
+    case FNV1a_Compiletime(Command):        \
+        Result = Functor(Variadic);         \
+        break
 
 extern "C"
 {
-    // Plugin initialization.
-    EXPORTSTART(PluginLoading);
-    EXPORTFUNCTION("PreInitialization", PreInitialization);
-    EXPORTFUNCTION("Shutdown", Shutdown);
-    EXPORTEND;
+    // Ayrias plugin exports as per https://github.com/AyriaNP/Documentation/blob/master/Plugins/StandardExports.md
+    EXPORT_ATTR bool __cdecl AyriaPlugin(size_t Command, ...)
+    {
+        bool Result = false;
+        va_list Variadic;
+        va_start(Variadic, Command);
 
-    // Fetching information about a plugin.
-    EXPORTSTART(PluginInformation);
-    EXPORTFUNCTION("AuthorName", AuthorName);               // char *Result
-    EXPORTFUNCTION("AuthorSite", AuthorSite);               // char *Result
-    EXPORTFUNCTION("InternalName", InternalName);           // char *Result
-    EXPORTFUNCTION("OnDiskHash", OnDiskHash);               // size_t *Result
-    EXPORTFUNCTION("DependencyCount", DependencyCount);     // size_t *Result
-    EXPORTFUNCTION("DependencyName", DependencyName);       // size_t Index, char *Result
-    EXPORTFUNCTION("WhitelistClaim", WhitelistClaim);       // bool *Result
-    EXPORTEND;
+        switch (Command)
+        {
+            EXPORTFUNCTION("AuthorName", AuthorName);
+            EXPORTFUNCTION("AuthorSite", AuthorSite);
+            EXPORTFUNCTION("Internalname", Internalname);
+            EXPORTFUNCTION("Modulehash", Modulehash);
+            EXPORTFUNCTION("DependencyCount", DependencyCount);
+            EXPORTFUNCTION("DependencyName", DependencyName);
+            EXPORTFUNCTION("WhitelistClaim", WhitelistClaim);
+            EXPORTFUNCTION("ReadValue", ReadValue);
+            EXPORTFUNCTION("WriteValue", WriteValue);
+            EXPORTFUNCTION("HandleMessage", HandleMessage);
+            EXPORTFUNCTION("PreInitialization", PreInitialization);
+            EXPORTFUNCTION("PostInitialization", PostInitialization);
+            EXPORTFUNCTION("NotifyShutdown", NotifyShutdown);
+        }
 
-    // Interplugin communication.
-    EXPORTSTART(PluginCommunication);
-    EXPORTFUNCTION("RecvMessage", RecvMessage);             // const char *Pluginname, size_t Command, const char *Message
-    EXPORTEND;
-};
+        va_end(Variadic);
+        return Result;
+    }
+}
 
 BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 {
@@ -205,7 +196,7 @@ BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
         break;
 
     case DLL_PROCESS_DETACH:
-        PluginLoading(FNV1a_Compiletime("Shutdown"));
+        AyriaPlugin(FNV1a_Compiletime("NotifyShutdown"));
         break;
     }
 
