@@ -12,7 +12,7 @@
 #include "VariadicString.h"
 
 // Easier to edit with a constant path.
-constexpr const char *Filepath = "Plugins\\LocalNetworking\\LocalNetworking.log";
+constexpr const char *Filepath = "Plugins\\Logs\\LocalNetworking.log";
 
 // Open and close a file rather than flushing it properly incase
 // we have other tools that need write access.
