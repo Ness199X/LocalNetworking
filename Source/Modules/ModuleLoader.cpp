@@ -148,7 +148,11 @@ bool ModuleLoader::LoadFromCSV(const char *CSVName)
     std::vector<std::vector<std::string>> Entries;
 
     // Load the file into memory.
-    Filemanager.BeginRead(va("Plugins\\LocalNetworking\\Modules\\%s", CSVName));
+    if (!Filemanager.BeginRead(va("Plugins\\LocalNetworking\\Modules\\%s", CSVName)))
+    {
+        DebugPrint(va("\n********* WARNING\nClould not load CSVfile \"%s\"\n********* WARNING\n", CSVName));
+        return false;
+    }
     Filemanager.ReadAll();
     Filemanager.GetBuffer(Entries);
 
