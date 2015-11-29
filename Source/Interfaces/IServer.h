@@ -43,7 +43,7 @@ public:
     unsigned char LocalStorage[32];
 
     // Identifiers and debug information.
-    size_t Identifier;
+    uint32_t Identifier;
     char *Hostname;
 
     // Usercode access to push data.

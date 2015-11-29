@@ -20,7 +20,7 @@ std::unordered_map<size_t /* Socket */, bool /* Blocked */>  NTServerManager::Bl
 // Internal map lookup methods.
 class IServer *NTServerManager::FetchServerByAddress(size_t Address)
 {
-    auto Result = ServerAddresses.find(Address);
+    auto Result = ServerAddresses.find((uint32_t)Address);
     return Result == ServerAddresses.end() ? nullptr : Result->second;
 }
 class IServer *NTServerManager::FetchServerBySocket(size_t Socket)
@@ -307,7 +307,7 @@ int32_t __stdcall    NTServerManager::NT_SendTo(size_t Socket, const char *Buffe
     // Let winsock handle the request if we can't.
     if (Server == nullptr)
     {
-        NetworkPrint(va("%s via 0x%X, %i bytes.", __func__, Socket, BufferLength));
+        NetworkPrint(va("%s to %s, %i bytes.", __func__, inet_ntoa(((sockaddr_in *)Peer)->sin_addr), BufferLength));
         return sendto(Socket, Buffer, BufferLength, Flags, Peer, PeerLength);
     }
 
