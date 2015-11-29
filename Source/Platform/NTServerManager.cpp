@@ -328,7 +328,7 @@ hostent *__stdcall   NTServerManager::NT_GetHostByName(const char *Hostname)
 
     // Find the server if we have one.
     if (INADDR_NONE == inet_addr(Hostname))
-        Server = FetchServerByAddress(FNV1a_Runtime((char *)Hostname, sizeof(Hostname)));
+        Server = FetchServerByAddress(FNV1a_Runtime((char *)Hostname, strlen(Hostname)));
     else
         Server = FetchServerByAddress(inet_addr(Hostname));
 
