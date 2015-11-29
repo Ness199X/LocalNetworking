@@ -1,163 +1,129 @@
 /*
     Initial author: (https://github.com/)Convery
     License: LGPL 3.0
-    Started: 2015-10-26
+    Started: 2015-11-29
     Notes:
         CSV reading and writing.
 */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include "CSVManager.h"
+#include "..\String\VariadicString.h"
 
-std::string ReadUntilToken(FILE *Filehandle, uint32_t Argcount, ...)
+#ifdef _WIN32
+char *strsep(char **String, const char *Delimiter)
 {
-    char TempChar = 0;
-    std::string Result;
-    char *StopTokens = new char [Argcount];
-    va_list Variadic;
-    fpos_t Position;
+    char *Start = *String;
+    char *Part;
 
-    // Read the tokenlist.
-    va_start(Variadic, Argcount);
-    for (uint32_t i = 0; i < Argcount; ++i)
-        StopTokens[i] = va_arg(Variadic, char);
+    Part = (Start != NULL) ? strpbrk(Start, Delimiter) : NULL;
 
-    // Read until a token is found.
-    while (fread_s(&TempChar, 1, 1, 1, Filehandle) == 1)
+    if (Part == NULL)
+        *String = NULL;
+    else
     {
-        // Check the tokens.
-        for (uint32_t i = 0; i < Argcount; ++i)
-            if (StopTokens[i] == TempChar)
-                goto LABEL_END;
-
-        // Append the char we read to the result.
-        Result.append(1, TempChar);
-
-        // Save the position as the last valid char.
-        fgetpos(Filehandle, &Position);
+        *Part = '\0';
+        *String = Part + 1;
     }
 
-LABEL_END:
-    // Restore the position to skip the end token.
-    fsetpos(Filehandle, &Position);
-
-    va_end(Variadic);
-    return Result;
+    return Start;
 }
-
-bool CSVManager::BeginRead(const char *Filename)
+#endif
+bool CSVManager::ReadFile(const char *Filename)
 {
-    Buffer.clear();
-    Buffer.shrink_to_fit();
+    FILE *Filehandle{ nullptr };
+    char *InputString = new char [1024]();
+    size_t Linecount{ 0 };
+    char *Tempstring{ nullptr };
+    char *Backupstring = InputString;
 
-    return fopen_s(&Filehandle, Filename, "rb") == 0;
-}
-bool CSVManager::ReadNext(std::string &NextItem)
-{
-    NextItem = ReadUntilToken(Filehandle, 3, '\n', '\0', ',');
-    return NextItem.size() > 0;
-}
-bool CSVManager::SkipLine()
-{
-    char TempBuffer;
+    // Ensure that the file exists.
+    if (0 != fopen_s(&Filehandle, Filename, "r"))
+        return false;
 
-    // Read the rest of the line and read past the endtoken.
-    return ((ReadUntilToken(Filehandle, 2, '\n', '\0').size()) > 0) && (fread(&TempBuffer, 1, 1, Filehandle) == 0);
-}
-bool CSVManager::ReadAll()
-{
-    char TempBuffer = 0;
-    uint32_t Linecount = 0;
-    std::string TemporaryString = "";
-
-    // Clear the buffer to be safe.
-    Buffer.clear();
-    Buffer.shrink_to_fit();
-
-#pragma warning (suppress : 127)
-    while(true)
+    // For each string in the file.
+    while (fgets(InputString, 1024, Filehandle))
     {
-        // Switch on the next character.
-        switch (Peek())
+        // If the line is empty, skip.
+        if (strlen(InputString) < 2)
+            continue;
+
+        // If the line is a comment, skip.
+        if (*InputString == '#')
+            continue;
+
+        // Create a new row in the buffer.
+        EntryBuffer.push_back(std::vector<std::string>());
+        Linecount++;
+
+        // Split the string into tokens.
+        while (true)
         {
-        case '#':  SkipLine(); break;
-        case '\n': Linecount++; Buffer.push_back(std::vector<std::string>());
-        case ',':  fread(&TempBuffer, 1, 1, Filehandle); break;
-        case '\0': return true;
+            // Get next token.
+            Tempstring = strsep(&InputString, ",\n\0");
 
-        // Append the item to the buffer.
-        default:
-            if (ReadNext(TemporaryString)) Buffer[Linecount].push_back(TemporaryString);
-            else Buffer[Linecount].push_back("");
+            // Add the token or quit.
+            if (Tempstring != nullptr)
+            {
+                // Remove any spaces before the value.
+                while (*Tempstring == ' ')
+                    Tempstring++;
+
+                // Append the token and a null string if it's the end of the line.
+                EntryBuffer[Linecount - 1].push_back(Tempstring);
+            }                
+            else
+                break;
         }
-    };
 
-    return false;
-}
-char CSVManager::Peek()
-{
-    char TempChar = '\0';
-    fpos_t Position;
+        // Clear the buffer.
+        InputString = Backupstring;
+        memset(InputString, 0, 1024);
+    }
 
-    fgetpos(Filehandle, &Position);
-    fread_s(&TempChar, 1, 1, 1, Filehandle);
-    fsetpos(Filehandle, &Position);
-
-    return TempChar;
-}
-
-void CSVManager::GetBuffer(std::vector<std::vector<std::string>> &Outbuffer)
-{
-    Outbuffer = Buffer;
-}
-bool CSVManager::Insert(int32_t Row, int32_t Col, std::string Entry)
-{
-    // Insert rows until we have the insert row number.
-    if (Row > 0)
-        for (size_t i = Buffer.size(); i < (unsigned)Row + 1; ++i)
-            Buffer.push_back(std::vector<std::string>());
-    else
-        Row = Buffer.size() > 0 ? (int32_t)Buffer.size() - 1 : 0;
-
-    // Insert cols until we have the insert col number.
-    if (Col > 0)
-        for (size_t i = Buffer[Row].size(); i < (unsigned)Col + 1; ++i)
-            Buffer[Row].push_back("");
-    else
-        Col = Buffer[Row].size() > 0 ? (int32_t)Buffer[Row].size() - 1 : 0;
-
-    // Insert the entry.
-    Buffer[Row][Col] = Entry;
+    delete[] InputString;
+    fclose(Filehandle);
     return true;
 }
 bool CSVManager::WriteFile(const char *Filename)
 {
-    FILE *NewHandle;
+    FILE *Filehandle{ nullptr };
 
-    // Create the file or delete the existing one.
-    if (fopen_s(&NewHandle, Filename, "wb") == 0)
+    // Check that we have anything to write.
+    if (EntryBuffer.size() == 0)
+        return false;
+
+    // Create the file.
+    if (0 != fopen_s(&Filehandle, Filename, "w"))
+        return false;
+
+    // Create the header.
+    fputs("# This file is generated via Ayrias CSV manager.\n", Filehandle);
+    fputs("# Layout: ", Filehandle);
+    for (size_t i = 0; i < EntryBuffer[0].size(); ++i)
+        fputs(va(" %c,", 0x41 + i), Filehandle);
+    fputs("\n\n", Filehandle);
+
+    // For each row.
+    for (auto Iterator = EntryBuffer.begin(); Iterator != EntryBuffer.end(); ++Iterator)
     {
-        // Write the common header.
-        fputs("# This file is generated via Ayrias CSV manager.\n", NewHandle);
-        fputs("# Please do not edit unless you know what you are doing.\n\n", NewHandle);
-
-        // Write the contents, line by line.
-        for (size_t i = Buffer.size(); i < Buffer.size(); ++i)
-        {
-            // For each entry.
-            for (size_t e = Buffer[i].size(); e < Buffer[i].size(); ++e)
-            {
-                fprintf(NewHandle, "%s%s", Buffer[i][e].c_str(), e == Buffer[i].size() - 1 ? "\n" : ",");
-            }
-        }
-
-        fclose(NewHandle);
+        for (auto Iterator2 = Iterator->begin(); Iterator2 != Iterator->end(); ++Iterator2)
+            fputs(va(" %s,", Iterator2->c_str()), Filehandle);
+        fputs("\n", Filehandle);
     }
 
+    fclose(Filehandle);
     return true;
 }
-bool CSVManager::CloseFile()
+std::string CSVManager::GetEntry(size_t Row, size_t Col)
 {
-    return fclose(Filehandle) == 0;
+    // Check rowcount.
+    if (Row > EntryBuffer.size() - 1)
+        return "";
+
+    // Check colcount.
+    if (Col > EntryBuffer[Row].size() - 1)
+        return "";
+
+    return EntryBuffer[Row][Col];
 }

@@ -67,5 +67,5 @@ inline IServer::IServer(char *Hostname)
 
     // Save the hostname for debug info.
     this->Hostname = new char[strlen(Hostname) + 1]();
-    strcpy_s(this->Hostname, strlen(Hostname), Hostname);
+    strcpy_s(this->Hostname, strlen(Hostname) + 1, Hostname);
 }

@@ -143,32 +143,29 @@ bool ModuleLoader::LoadModule(const char *Modulename, const char *License)
 // Load modules from a CSV, uses LoadModule.
 bool ModuleLoader::LoadFromCSV(const char *CSVName)
 {
-    CSVManager Filemanager;
+    CSVManager Manager;
     size_t InstanceCount = 0;    
-    std::vector<std::vector<std::string>> Entries;
 
     // Load the file into memory.
-    if (!Filemanager.BeginRead(va("Plugins\\LocalNetworking\\Modules\\%s", CSVName)))
+    if (!Manager.ReadFile(va("Plugins\\LocalNetworking\\%s", CSVName)))
     {
         DebugPrint(va("\n********* WARNING\nClould not load CSVfile \"%s\"\n********* WARNING\n", CSVName));
         return false;
     }
-    Filemanager.ReadAll();
-    Filemanager.GetBuffer(Entries);
 
     // Load each module.
-    for (auto Entryiterator = Entries.begin(); Entryiterator != Entries.end(); ++Entryiterator)
-        LoadModule((*Entryiterator)[1].c_str(), (*Entryiterator)[2].c_str());
+    for (size_t i = 0; i < Manager.EntryBuffer.size(); ++i)
+        LoadModule(Manager.GetEntry(i, 1).c_str(), Manager.GetEntry(i, 2).c_str());
 
     // Create a new server instance for each entry.
-    for (auto Entryiterator = Entries.begin(); Entryiterator != Entries.end(); ++Entryiterator)
+    for (size_t i = 0; i < Manager.EntryBuffer.size(); ++i)
     {
         for (auto Moduleiterator = ModuleArray.begin(); Moduleiterator != ModuleArray.end(); ++Moduleiterator)
         {
-            if (0 == strcmp(Moduleiterator->Modulename.c_str(), (*Entryiterator)[1].c_str()))
+            if (0 == strcmp(Moduleiterator->Modulename.c_str(), Manager.GetEntry(i, 1).c_str()))
             {
                 static class IServer *Instance{ nullptr };
-                Instance = CreateInstance(Moduleiterator->Modulename.c_str(), (*Entryiterator)[0].c_str());
+                Instance = CreateInstance(Moduleiterator->Modulename.c_str(), Manager.GetEntry(i, 0).c_str());
 
                 if (Instance != nullptr)
                 {
