@@ -346,19 +346,19 @@ hostent *__stdcall   NTServerManager::NT_GetHostByName(const char *Hostname)
     }
 
     // Create the local address.
-    static in_addr LocalAddress;
-    static in_addr *LocalSocketAddrList[2];
+    in_addr LocalAddress;
+    in_addr *LocalSocketAddrList[2];
     LocalAddress.s_addr = Server->Identifier;
     LocalSocketAddrList[0] = &LocalAddress;
     LocalSocketAddrList[1] = nullptr;
 
-    static hostent LocalHost;
-    LocalHost.h_name = const_cast<char *>(Hostname);
-    LocalHost.h_aliases = NULL;
-    LocalHost.h_addrtype = AF_INET;
-    LocalHost.h_length = sizeof(in_addr);
-    LocalHost.h_addr_list = (char **)LocalSocketAddrList;
+    hostent *LocalHost = new hostent();
+    LocalHost->h_name = const_cast<char *>(Hostname);
+    LocalHost->h_aliases = NULL;
+    LocalHost->h_addrtype = AF_INET;
+    LocalHost->h_length = sizeof(in_addr);
+    LocalHost->h_addr_list = (char **)LocalSocketAddrList;
 
     NetworkPrint(va("%s: \"%s\" -> %s", __func__, Hostname, inet_ntoa(LocalAddress)));
-    return &LocalHost;
+    return LocalHost;
 }
